@@ -221,17 +221,21 @@ if flagged_points:
                 else:
                     st.warning("Pola tidak sesuai rulebook - perlu analisis manual oleh vibration analyst")
         
-        # Step 6: Kesimpulan & Ekspor (DIPERBAIKI - CSV REAL)
+                # Step 6: Kesimpulan & Ekspor (FIXED - NO KEYERROR!)
         st.divider()
         col_x, col_y = st.columns(2)
         with col_x:
             st.subheader("📋 Kesimpulan Sistem")
-            critical_count = sum(1 for p in flagged_points if input_data[p] > ISO_LIMITS["Zone C"])
-            st.write(f"- Total titik kritis (Zone C/D): **{critical_count}**")
+            # Ambil threshold Zone C dengan key yang benar
+            zone_c_val = ISO_LIMITS["Zone C (Unacceptable)"]
+            critical_count = sum(1 for p in flagged_points if input_data[p] > zone_c_val)
+            st.write(f"- Titik di atas Zone C (> {zone_c_val} mm/s): **{critical_count}**")
             if critical_count > 2:
-                st.error("🔴 **Rekomendasi: Segera hentikan operasi!**")
+                st.error("🔴 **Rekomendasi: HENTIKAN OPERASI SEGERA!**")
+            elif critical_count > 0:
+                st.warning("🟠 **Rekomendasi: Perbaikan dalam 24 jam**")
             else:
-                st.warning("🟡 **Rekomendasi: Jadwalkan perbaikan dalam 72 jam**")
+                st.info("🟢 **Rekomendasi: Perbaikan dalam 72 jam**")
         
         with col_y:
             st.subheader("📤 Ekspor Data")
@@ -243,7 +247,7 @@ if flagged_points:
                 mime="text/csv",
                 use_container_width=True
             )
-            st.info("💡 File CSV berisi semua data FFT & hasil diagnosa. Buka di Excel!")
+            st.caption("✅ File siap dibuka di Excel/Google Sheets")
 
 else:
     st.success("✅ Semua titik dalam batas normal! Tidak diperlukan analisis FFT.")
